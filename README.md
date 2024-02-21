@@ -44,7 +44,7 @@ To start the scraping process, execute the `main.py` script with the required ar
 For example:
 
 ```bash
-python main.py --start-date 2022-12-01 --end-date 2022-12-31
+python3 main.py --start-date 2022-12-01 --end-date 2022-12-31
 ```
 
 Ensure the start and end dates are valid and the start date is before the end date.

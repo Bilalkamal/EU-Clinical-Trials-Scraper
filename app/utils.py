@@ -55,8 +55,8 @@ def write_json_to_disk(json_object, query_details):
     """
     data_directory = os.path.join(os.path.dirname(__file__), '..', 'data')
     os.makedirs(data_directory, exist_ok=True)
-    filename = f"{query_details['start_date']}_{
-        query_details['end_date']}_{query_details['run_date']}.json"
+    filename = f"""{query_details['start_date']}_{
+        query_details['end_date']}_{query_details['run_date']}.json"""
     file_path = os.path.join(data_directory, filename)
     with open(file_path, 'w') as f:
         json.dump(json_object, f)
