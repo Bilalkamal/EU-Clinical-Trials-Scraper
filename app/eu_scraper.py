@@ -104,8 +104,7 @@ class EUClinicalTrialsScraper:
             Exception: If the page retrieval fails.
         """
         try:
-            search_url = f"{BASE_URL}/ctr-search/search?query=&dateFrom={self.start_date}&dateTo={self.end_date}" + \
-                (f"&page={page_number}" if page_number else "")
+            search_url = f"{BASE_URL}/ctr-search/search?query=&dateFrom={self.start_date}&dateTo={self.end_date}" + (f"&page={page_number}" if page_number else "")
             response = self.session.get(search_url)
             response.raise_for_status()
             return BeautifulSoup(response.text, "html.parser")
@@ -131,8 +130,7 @@ class EUClinicalTrialsScraper:
         try:
             trial_data = {}
             trial_data["card"] = self.get_card_data(trial_card)
-            protocols_urls = [protocol["protocol_url"]
-                              for protocol in trial_data["card"]["trial_protocols"] if protocol["protocol_url"]]
+            protocols_urls = [protocol["protocol_url"] for protocol in trial_data["card"]["trial_protocols"] if protocol["protocol_url"]]
             trial_data["protocols"] = self.get_protocols_data(protocols_urls)
             results_url = trial_data["card"]["trial_results_link"]
             if results_url:
@@ -244,8 +242,7 @@ class EUClinicalTrialsScraper:
             if not data_section:
                 return None
             pattern = r"(\d+) result\(s\) found.*page \d+ of (\d+)"
-            text = re.sub(
-                r'\s+', ' ', data_section.text.strip().replace("  ", "").replace(",", "")).strip()
+            text = re.sub(r'\s+', ' ', data_section.text.strip().replace("  ", "").replace(",", "")).strip()
             match = re.search(pattern, text)
             if not match:
                 return None
