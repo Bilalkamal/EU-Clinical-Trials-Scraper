@@ -2,8 +2,11 @@
 import argparse
 from datetime import datetime, timedelta
 from app.eu_scraper import EUClinicalTrialsScraper
-from app.utils import setup_logging, write_csv_to_disk
+from app.utils import setup_logging, write_csv_to_disk, write_to_s3
 import logging
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 
 def parse_args():
@@ -59,6 +62,16 @@ def main():
             current_date, current_date)
         logging.info(f"Scraping complete for {current_date}")
         write_csv_to_disk(output, query_details)
+        cards_path, protocols_path, results_path = write_csv_to_disk(
+            output, query_details)
+
+        # load bucket and key from .env
+        bucket = os.getenv("BUCKET")
+        key = os.getenv("KEY")
+
+        write_to_s3(bucket, key, cards_path)
+        write_to_s3(bucket, key, protocols_path)
+        write_to_s3(bucket, key, results_path)
 
         current_date += timedelta(days=1)
 

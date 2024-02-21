@@ -6,8 +6,9 @@ import json
 from datetime import datetime
 import pandas as pd
 import pdfplumber
+import boto3
 import zipfile
-from io import BytesIO
+from io import BytesIO, StringIO
 
 
 def setup_logging():
@@ -54,7 +55,8 @@ def write_json_to_disk(json_object, query_details):
     """
     data_directory = os.path.join(os.path.dirname(__file__), '..', 'data')
     os.makedirs(data_directory, exist_ok=True)
-    filename = f"{query_details['start_date']}_{query_details['end_date']}_{query_details['run_date']}.json"
+    filename = f"{query_details['start_date']}_{
+        query_details['end_date']}_{query_details['run_date']}.json"
     file_path = os.path.join(data_directory, filename)
     with open(file_path, 'w') as f:
         json.dump(json_object, f)
@@ -183,9 +185,12 @@ def write_csv_to_disk(json_object, query_details):
     """
     data_directory = os.path.join(os.path.dirname(__file__), '..', 'data')
     os.makedirs(data_directory, exist_ok=True)
-    cards_filename = f"trial_info_cards_{query_details['start_date']}_{query_details['end_date']}_{query_details['run_date']}.csv"
-    protocols_filename = f"trial_protocols_{query_details['start_date']}_{query_details['end_date']}_{query_details['run_date']}.csv"
-    results_filename = f"trial_results_{query_details['start_date']}_{query_details['end_date']}_{query_details['run_date']}.csv"
+    cards_filename = f"trial_info_cards_{query_details['start_date']}_{
+        query_details['end_date']}_{query_details['run_date']}.csv"
+    protocols_filename = f"trial_protocols_{query_details['start_date']}_{
+        query_details['end_date']}_{query_details['run_date']}.csv"
+    results_filename = f"trial_results_{query_details['start_date']}_{
+        query_details['end_date']}_{query_details['run_date']}.csv"
     cards_file_path = os.path.join(data_directory, cards_filename)
     protocols_file_path = os.path.join(data_directory, protocols_filename)
     results_file_path = os.path.join(data_directory, results_filename)
@@ -201,3 +206,21 @@ def write_csv_to_disk(json_object, query_details):
     results_df.to_csv(results_file_path, index=False)
     logging.info(
         f"Data written to {cards_file_path}, {protocols_file_path}, {results_file_path}")
+    return cards_file_path, protocols_file_path, results_file_path
+
+
+def write_to_s3(bucket, key, file_path):
+    """
+    Writes a file to an S3 bucket.
+
+    Args:
+        bucket (str): The name of the S3 bucket.
+        key (str): The key (path) of the file in the S3 bucket.
+        file_path (str): The local file path of the file to be uploaded.
+
+    Returns:
+        None
+    """
+    s3 = boto3.client('s3')
+    s3.upload_file(file_path, bucket, key)
+    logging.info(f"File uploaded to s3://{bucket}/{key}")
