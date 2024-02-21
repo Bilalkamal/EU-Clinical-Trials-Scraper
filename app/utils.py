@@ -129,8 +129,7 @@ def get_json_data_in_pandas(json_data):
         trial_info_card = result["card"]
         card_disease = trial_info_card["disease"]
         eudract_number = trial_info_card['eudract_number']
-        trial_start_date = pd.to_datetime(
-            trial_info_card['start_date'], errors='coerce')
+        trial_start_date = pd.to_datetime(trial_info_card['start_date'], errors='coerce')
         protocols = result['protocols']
         if pd.isnull(trial_start_date):
             trial_start_date = None
@@ -157,17 +156,14 @@ def get_json_data_in_pandas(json_data):
             protocol_id = protocol['url'].split('/')
             protocol_id = '-'.join(protocol_id[-2:])
 
-            protocols_df.loc[len(protocols_df)] = [
-                protocol_id, eudract_number, protocol['url'], json.dumps(protocol)]
+            protocols_df.loc[len(protocols_df)] = [protocol_id, eudract_number, protocol['url'], json.dumps(protocol)]
 
         results = result['results'] if 'results' in result else None
         if not results:
             continue
         for version, value in results.items():
-            results_df.loc[len(results_df)] = [eudract_number, version,
-                                               value['summary']['url'], json.dumps(value)]
-        logging.info(
-            f"Cards: {cards_df.shape}, Protocols: {protocols_df.shape}, Results: {results_df.shape}")
+            results_df.loc[len(results_df)] = [eudract_number, version, value['summary']['url'], json.dumps(value)]
+        logging.info(f"Cards: {cards_df.shape}, Protocols: {protocols_df.shape}, Results: {results_df.shape}")
     return cards_df, protocols_df, results_df
 
 
@@ -185,27 +181,22 @@ def write_csv_to_disk(json_object, query_details):
     """
     data_directory = os.path.join(os.path.dirname(__file__), '..', 'data')
     os.makedirs(data_directory, exist_ok=True)
-    cards_filename = f"trial_info_cards_{query_details['start_date']}_{
-        query_details['end_date']}_{query_details['run_date']}.csv"
-    protocols_filename = f"trial_protocols_{query_details['start_date']}_{
-        query_details['end_date']}_{query_details['run_date']}.csv"
-    results_filename = f"trial_results_{query_details['start_date']}_{
-        query_details['end_date']}_{query_details['run_date']}.csv"
+    cards_filename = f"trial_info_cards_{query_details['start_date']}_{query_details['end_date']}_{query_details['run_date']}.csv"
+    protocols_filename = f"trial_protocols_{query_details['start_date']}_{query_details['end_date']}_{query_details['run_date']}.csv"
+    results_filename = f"trial_results_{query_details['start_date']}_{query_details['end_date']}_{query_details['run_date']}.csv"
     cards_file_path = os.path.join(data_directory, cards_filename)
     protocols_file_path = os.path.join(data_directory, protocols_filename)
     results_file_path = os.path.join(data_directory, results_filename)
 
     cards_df, protocols_df, results_df = get_json_data_in_pandas(json_object)
     if cards_df is None or protocols_df is None or results_df is None:
-        logging.warning(
-            f"Failed to write data to disk. No data to write for {query_details['start_date']} to {query_details['end_date']}")
+        logging.warning(f"Failed to write data to disk. No data to write for {query_details['start_date']} to {query_details['end_date']}")
         return
 
     cards_df.to_csv(cards_file_path, index=False)
     protocols_df.to_csv(protocols_file_path, index=False)
     results_df.to_csv(results_file_path, index=False)
-    logging.info(
-        f"Data written to {cards_file_path}, {protocols_file_path}, {results_file_path}")
+    logging.info(f"Data written to {cards_file_path}, {protocols_file_path}, {results_file_path}")
     return cards_file_path, protocols_file_path, results_file_path
 
 
