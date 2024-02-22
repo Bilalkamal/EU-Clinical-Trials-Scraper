@@ -210,7 +210,6 @@ def write_csv_to_s3(json_object, query_details, bucket, key, access_key):
     logging.info(f"Data written to s3://{bucket}/{key}/{protocols_filename}")
     s3.put_object(Bucket=bucket, Key=f"{key}/{results_filename}", Body=results_df_buffer.getvalue())
     logging.info(f"Data written to s3://{bucket}/{key}/{results_filename}")
-    logging.info(f"Data written to {cards_file_path}, {protocols_file_path}, {results_file_path}")
     
 
 
