@@ -135,7 +135,7 @@ def get_json_data_in_pandas(json_data):
             trial_start_date = None
 
         if trial_info_card['full_title'].endswith('...'):
-            trial_info_card['full_title'] = protocols[0]["A. Protocol Information"]["Full title of the trial"]
+            trial_info_card['full_title'] = protocols[0]["A. Protocol Information"]["Full title of the trial"][0]
 
         new_card_info_row = [
             eudract_number,
@@ -167,7 +167,7 @@ def get_json_data_in_pandas(json_data):
     return cards_df, protocols_df, results_df
 
 
-def write_csv_to_disk(json_object, query_details):
+def write_csv_to_s3(json_object, query_details, bucket, key, access_key):
     """
     Writes trial information, protocols, and results data to CSV files on disk.
 
@@ -193,25 +193,24 @@ def write_csv_to_disk(json_object, query_details):
         logging.warning(f"Failed to write data to disk. No data to write for {query_details['start_date']} to {query_details['end_date']}")
         return
 
-    cards_df.to_csv(cards_file_path, index=False)
-    protocols_df.to_csv(protocols_file_path, index=False)
-    results_df.to_csv(results_file_path, index=False)
+    cards_df_buffer = StringIO()
+    cards_df.to_csv(cards_df_buffer, index=False)
+    protocols_df_buffer = StringIO()
+    protocols_df.to_csv(protocols_df_buffer, index=False)
+    results_df_buffer = StringIO()
+    results_df.to_csv(results_df_buffer, index=False)
+    session = boto3.Session(
+        aws_access_key_id= key,
+        aws_secret_access_key= access_key,
+    )
+    s3 = session.client('s3', region_name='us-east-1')
+    s3.put_object(Bucket=bucket, Key=f"{key}/{cards_filename}", Body=cards_df_buffer.getvalue())
+    logging.info(f"Data written to s3://{bucket}/{key}/{cards_filename}")
+    s3.put_object(Bucket=bucket, Key=f"{key}/{protocols_filename}", Body=protocols_df_buffer.getvalue())
+    logging.info(f"Data written to s3://{bucket}/{key}/{protocols_filename}")
+    s3.put_object(Bucket=bucket, Key=f"{key}/{results_filename}", Body=results_df_buffer.getvalue())
+    logging.info(f"Data written to s3://{bucket}/{key}/{results_filename}")
     logging.info(f"Data written to {cards_file_path}, {protocols_file_path}, {results_file_path}")
-    return cards_file_path, protocols_file_path, results_file_path
+    
 
 
-def write_to_s3(bucket, key, file_path):
-    """
-    Writes a file to an S3 bucket.
-
-    Args:
-        bucket (str): The name of the S3 bucket.
-        key (str): The key (path) of the file in the S3 bucket.
-        file_path (str): The local file path of the file to be uploaded.
-
-    Returns:
-        None
-    """
-    s3 = boto3.client('s3')
-    s3.upload_file(file_path, bucket, key)
-    logging.info(f"File uploaded to s3://{bucket}/{key}")

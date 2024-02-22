@@ -2,11 +2,11 @@
 import argparse
 from datetime import datetime, timedelta
 from app.eu_scraper import EUClinicalTrialsScraper
-from app.utils import setup_logging, write_csv_to_disk, write_to_s3
+from app.utils import setup_logging, write_csv_to_s3, write_json_to_disk
 import logging
 import os
 from dotenv import load_dotenv
-load_dotenv()
+
 
 
 def parse_args():
@@ -51,6 +51,7 @@ def scrape_by_date_range(start_date, end_date):
 
 def main():
     setup_logging()
+    load_dotenv()
     args = parse_args()
 
     start_date, end_date = validate_dates(args.start_date, args.end_date)
@@ -61,18 +62,13 @@ def main():
         output, query_details = scrape_by_date_range(
             current_date, current_date)
         logging.info(f"Scraping complete for {current_date}")
-        write_csv_to_disk(output, query_details)
-        cards_path, protocols_path, results_path = write_csv_to_disk(
-            output, query_details)
 
-        # load bucket and key from .env
-        bucket = os.getenv("BUCKET")
-        key = os.getenv("KEY")
-
-        write_to_s3(bucket, key, cards_path)
-        write_to_s3(bucket, key, protocols_path)
-        write_to_s3(bucket, key, results_path)
-
+        KEY_ID = os.environ.get('AWS_ACCESS_KEY_ID')
+        ACCESS_KEY = os.environ.get('AWS_SECRET_ACCESS_KEY')
+        BUCKET_NAME = os.environ.get('BUCKET_NAME')
+                                    
+        write_csv_to_s3(output, query_details, BUCKET_NAME, KEY_ID, ACCESS_KEY)
+        
         current_date += timedelta(days=1)
 
 

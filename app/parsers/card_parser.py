@@ -141,7 +141,7 @@ class CardParser:
         full_title = self.card.find_all("tr")[2].find("td").text
         full_title = full_title.replace("Full Title:", "").strip()
         full_title = full_title.replace("\n", "")
-        self.data["full_title"] = full_title
+        self.data["full_title"] = str(full_title)
     # Fourth Row Data
 
     def get_medical_condition(self):
@@ -153,8 +153,7 @@ class CardParser:
         """
 
         medical_condition = self.card.find_all("tr")[3].find("td").text
-        medical_condition = medical_condition.replace(
-            "Medical condition:", "").strip()
+        medical_condition = medical_condition.replace("Medical condition:", "").strip()
         medical_condition = medical_condition.replace("\n", "")
         self.data["medical_condition"] = medical_condition
     # Fifth Row Data
